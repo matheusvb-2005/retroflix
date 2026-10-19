@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FOR YOU - RETROFLIX</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark pixel-bg">
+
+  <!-- Header -->
+  <header class="pixel-border-bottom p-4">
+    <div class="container mx-auto flex flex-wrap justify-between items-center gap-4">
+      <a href="index.html" class="logo-text text-2xl text-purple glow">RETROFLIX</a>
+
+      <div class="flex items-center gap-4 flex-wrap">
+        <span id="user-greeting" class="body-text text-yellow hidden"></span>
+        <a href="catalog.html" class="pixel-button bg-green">[B] CATALOG</a>
+        <a href="favorites.html" class="pixel-button bg-red">[H] FAVORITES</a>
+        <button id="logout-btn" class="pixel-button bg-gray">LOGOUT</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Recommendations Section -->
+  <section class="p-8">
+    <div class="container mx-auto">
+
+      <div class="text-center mb-12">
+        <h2 class="section-title text-5xl mb-4 text-blue glow">
+          [O] FOR YOU [O]
+        </h2>
+        <p id="genres-info" class="body-text text-gray mb-2">
+          Based on your favorite genres
+        </p>
+        <div id="selected-genres" class="flex justify-center gap-2 flex-wrap mt-4">
+          <!-- Genres will be displayed here -->
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading" class="loading">
+        <p class="loading-text">GENERATING RECOMMENDATIONS...</p>
+      </div>
+
+      <!-- Login Required -->
+      <div id="login-required" class="pixel-box text-center max-w-2xl mx-auto hidden">
+        <p class="body-text text-2xl mb-6 text-yellow">
+          [#] LOGIN REQUIRED
+        </p>
+        <p class="body-text mb-6 text-gray">
+          Você precisa fazer login para ver recomendações personalizadas!
+        </p>
+        <a href="login.html" class="pixel-button-large bg-purple">
+          ▶ FAZER LOGIN
+        </a>
+      </div>
+
+      <!-- Recommendations Grid -->
+      <div id="recommendations-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 hidden">
+        <!-- Recommendations will be dynamically inserted here -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="pixel-box text-center max-w-2xl mx-auto hidden">
+        <p class="body-text text-2xl mb-4 text-yellow">[;(] NO RECOMMENDATIONS</p>
+        <p class="body-text text-gray mb-6">
+          Não encontramos títulos para seus gêneros favoritos.<br>
+          Que tal explorar o catálogo completo?
+        </p>
+        <a href="catalog.html" class="pixel-button-large bg-green">
+          [B] VER CATÁLOGO
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    const favoriteGenres = JSON.parse(localStorage.getItem('favoriteGenres') || '[]');
+    const userGreeting = document.getElementById('user-greeting');
+    const loading = document.getElementById('loading');
+    const loginRequired = document.getElementById('login-required');
+    const recommendationsGrid = document.getElementById('recommendations-grid');
+    const emptyState = document.getElementById('empty-state');
+    const selectedGenres = document.getElementById('selected-genres');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    let userFavorites = [];
+
+    // Check if user is logged in
+    if (!userId) {
+      loading.classList.add('hidden');
+      loginRequired.classList.remove('hidden');
+    } else {
+      // Show user greeting
+      if (username) {
+        userGreeting.textContent = `[P] Player: ${username}`;
+        userGreeting.classList.remove('hidden');
+      }
+
+      // Check if user has favorite genres in localStorage
+      if (!favoriteGenres || favoriteGenres.length === 0) {
+        console.log('[DEBUG] Usuário sem gêneros no localStorage, tentando buscar do servidor...');
+        // Try to fetch from server
+        fetch(`/api/auth/user/${userId}`)
+          .then(res => res.json())
+          .then(userData => {
+            if (userData.favoriteGenres && userData.favoriteGenres.length > 0) {
+              localStorage.setItem('favoriteGenres', JSON.stringify(userData.favoriteGenres));
+              console.log('[DEBUG] Gêneros atualizados:', userData.favoriteGenres);
+              fetchRecommendations();
+            } else {
+              loading.classList.add('hidden');
+              emptyState.innerHTML = `
+                <p class="body-text text-2xl text-red">[!] Você precisa definir seus gêneros favoritos!</p>
+                <p class="body-text text-lg text-gray mt-4">Faça logout e login novamente para selecionar seus gêneros.</p>
+                <button onclick="logout()" class="pixel-button bg-purple mt-6">FAZER LOGOUT</button>
+              `;
+              emptyState.classList.remove('hidden');
+            }
+          })
+          .catch(err => {
+            console.error('Erro ao buscar dados do usuário:', err);
+            fetchRecommendations();
+          });
+      } else {
+        // Fetch recommendations (will display genres dynamically)
+        fetchRecommendations();
+      }
+    }
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    });
+
+    // Fetch recommendations
+    async function fetchRecommendations() {
+      try {
+        console.log('[DEBUG] Buscando recomendações para userId:', userId);
+        const response = await fetch(`/api/recommendations/${userId}`);
+        const data = await response.json();
+
+        console.log('[DEBUG] Resposta da API:', data);
+
+        if (!response.ok) {
+          console.error('[DEBUG] Erro na resposta:', data.error);
+          throw new Error(data.error);
+        }
+
+        console.log('[DEBUG] Recomendações encontradas:', data.recommendations?.length || 0);
+
+        // Update genres info
+        const genresInfo = document.getElementById('genres-info');
+        if (data.expandedFromFavorites) {
+          genresInfo.innerHTML = `[+] Gêneros expandidos com base nos seus favoritos! <span class="text-purple">✨</span>`;
+          genresInfo.className = 'body-text text-green mb-2';
+        } else {
+          genresInfo.innerHTML = 'Baseado nos seus gêneros favoritos';
+          genresInfo.className = 'body-text text-gray mb-2';
+        }
+
+        // Display active genres
+        const selectedGenres = document.getElementById('selected-genres');
+        selectedGenres.innerHTML = '';
+        if (data.genres && data.genres.length > 0) {
+          data.genres.forEach(genre => {
+            const tag = document.createElement('span');
+            tag.className = 'genre-tag selected';
+            tag.textContent = genre;
+            selectedGenres.appendChild(tag);
+          });
+        }
+
+        // Fetch user favorites
+        const favResponse = await fetch(`/api/titles/favorites/${userId}`);
+        userFavorites = await favResponse.json();
+
+        displayRecommendations(data.recommendations);
+      } catch (error) {
+        console.error('[DEBUG] Erro ao buscar recomendações:', error);
+        loading.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+      }
+    }
+
+    // Escape HTML to prevent injection
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Display recommendations
+    function displayRecommendations(recommendations) {
+      loading.classList.add('hidden');
+
+      if (recommendations.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      recommendationsGrid.classList.remove('hidden');
+      recommendationsGrid.innerHTML = '';
+
+      recommendations.forEach(title => {
+        const isFavorite = userFavorites.some(fav => fav._id === title._id);
+
+        const card = document.createElement('div');
+        card.className = 'movie-card animate-slide-up';
+
+        // Escape title name for safe use in HTML
+        const safeName = escapeHtml(title.name);
+
+        // Create SVG fallback with properly escaped XML entities
+        const svgSafeName = title.name
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&apos;');
+
+        const fallbackSVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450'%3E%3Crect width='300' height='450' fill='%232D3748'/%3E%3Ctext x='50%25' y='50%25' font-family='monospace' font-size='16' fill='%2368D391' text-anchor='middle' dominant-baseline='middle'%3E${encodeURIComponent(svgSafeName)}%3C/text%3E%3C/svg%3E`;
+
+        card.innerHTML = `
+          <button class="pixel-heart" data-id="${title._id}" data-favorited="${isFavorite}">
+            <div class="${isFavorite ? 'pixel-heart-filled' : 'pixel-heart-empty'}"></div>
+          </button>
+          <div class="movie-badge">${escapeHtml(title.type)}</div>
+          <img src="${escapeHtml(title.posterUrl)}" alt="${safeName}" onerror="this.onerror=null; this.src='${fallbackSVG}';">
+          <div class="p-4">
+            <h3 class="card-title mb-2 text-purple">${safeName}</h3>
+            <p class="body-text text-yellow" style="font-size: 1rem;">${escapeHtml(title.genre)} • ${title.year}</p>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="body-text text-green" style="font-size: 1rem;">⭐ ${title.rating}/10</span>
+            </div>
+          </div>
+        `;
+
+        recommendationsGrid.appendChild(card);
+      });
+
+      // Add heart button listeners
+      document.querySelectorAll('.pixel-heart').forEach(btn => {
+        btn.addEventListener('click', handleFavoriteToggle);
+      });
+    }
+
+    // Handle favorite toggle
+    async function handleFavoriteToggle(e) {
+      e.stopPropagation();
+      const btn = e.currentTarget;
+
+      const titleId = btn.dataset.id;
+      const isFavorited = btn.dataset.favorited === 'true';
+      const heartDiv = btn.querySelector('div');
+
+      try {
+        const endpoint = isFavorited ? '/api/titles/unfavorite' : '/api/titles/favorite';
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, titleId })
+        });
+
+        if (response.ok) {
+          // Toggle visual state
+          const newState = !isFavorited;
+          btn.dataset.favorited = newState;
+          heartDiv.className = newState ? 'pixel-heart-filled' : 'pixel-heart-empty';
+
+          // Update local favorites array
+          if (newState) {
+            const title = userFavorites.find(t => t._id === titleId);
+            if (!title) {
+              // Refresh recommendations to update the list
+              fetchRecommendations();
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error toggling favorite:', error);
+        alert('[X] Erro ao favoritar. Tente novamente.');
+      }
+    }
+  </script>
+
+</body>
+</html>

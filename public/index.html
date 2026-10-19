@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RETROFLIX - The Pixel Streaming Platform</title>
+
+  <!-- Google Fonts - Pixel Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark pixel-bg">
+
+  <!-- Header -->
+  <header class="pixel-border-bottom p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="logo-text text-3xl text-purple glow">RETROFLIX</h1>
+      <div class="flex gap-4">
+        <a href="login.html" class="pixel-button bg-purple">LOGIN</a>
+        <a href="login.html?mode=register" class="pixel-button bg-green">SIGN UP</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section min-h-screen flex items-center justify-center p-8">
+    <div class="text-center max-w-4xl">
+
+      <!-- Pixel Art Decoration -->
+      <div class="flex justify-center mb-8">
+        <div class="pixel-tv animate-pulse">
+          <div class="tv-screen">📺</div>
+        </div>
+      </div>
+
+      <!-- Main Hero Text -->
+      <h2 class="hero-title text-6xl md:text-8xl mb-6 glow-strong">
+        READY<br>PLAYER?
+      </h2>
+
+      <p class="hero-subtitle text-2xl md:text-3xl mb-8 text-green">
+        [ STREAMING COMO EM 1993 ]
+      </p>
+
+      <div class="pixel-box p-6 mb-8 max-w-2xl mx-auto">
+        <p class="body-text text-xl mb-4">
+          [*] Bem-vindo à primeira plataforma de<br>
+          streaming com estética RETRÔ!
+        </p>
+        <p class="body-text text-lg text-yellow">
+          Filmes • Séries • Pixel Art • Nostalgia
+        </p>
+      </div>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <a href="login.html?mode=register" class="pixel-button-large bg-purple">
+          ▶ START GAME
+        </a>
+        <a href="catalog.html" class="pixel-button-large bg-blue">
+          [B] BROWSE TITLES
+        </a>
+      </div>
+
+      <!-- Pixel Divider -->
+      <div class="mt-12 flex justify-center gap-4">
+        <span class="pixel-dot"></span>
+        <span class="pixel-dot"></span>
+        <span class="pixel-dot"></span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-16 px-8">
+    <div class="container mx-auto">
+      <h3 class="section-title text-4xl text-center mb-12 text-yellow glow">
+        &lt; FEATURES /&gt;
+      </h3>
+
+      <div class="grid md:grid-cols-3 gap-8">
+
+        <!-- Feature 1 -->
+        <div class="pixel-card">
+          <div class="text-5xl mb-4">[P]</div>
+          <h4 class="card-title text-xl mb-3 text-purple">PIXEL<br>PERFECTION</h4>
+          <p class="body-text text-base">
+            Visual 100% retrô inspirado nos games clássicos dos anos 80 e 90.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="pixel-card">
+          <div class="text-5xl mb-4">[R]</div>
+          <h4 class="card-title text-xl mb-3 text-green">SMART<br>RECOMMENDATIONS</h4>
+          <p class="body-text text-base">
+            Sistema de recomendação baseado nos seus gêneros favoritos.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="pixel-card">
+          <div class="text-5xl mb-4">[F]</div>
+          <h4 class="card-title text-xl mb-3 text-red">FAVORITES<br>SYSTEM</h4>
+          <p class="body-text text-base">
+            Favorite seus filmes e séries preferidos com um clique!
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="pixel-border-top p-8 mt-16">
+    <div class="text-center">
+      <p class="body-text text-green mb-2">
+        [*] RETROFLIX (c) 2025 [*]
+      </p>
+      <p class="body-text text-sm text-gray">
+        Trabalho A3 - Banco de Dados II - Prof. Edson Cecchetti
+      </p>
+      <p class="body-text text-xs text-gray mt-2">
+        Made with [+] and nostalgia
+      </p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

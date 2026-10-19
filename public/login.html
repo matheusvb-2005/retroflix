@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOGIN - RETROFLIX</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark pixel-bg">
+
+  <!-- Header -->
+  <header class="pixel-border-bottom p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="logo-text text-2xl text-purple glow">RETROFLIX</a>
+      <a href="index.html" class="pixel-button bg-yellow">◀ BACK</a>
+    </div>
+  </header>
+
+  <!-- Login/Register Section -->
+  <section class="min-h-screen flex items-center justify-center p-8">
+    <div class="max-w-2xl w-full">
+
+      <!-- Mode Toggle -->
+      <div class="text-center mb-8">
+        <h2 id="form-title" class="section-title text-4xl mb-6 text-green glow">
+          [ LOGIN ]
+        </h2>
+        <p class="body-text text-gray mb-4">
+          <span id="toggle-text">Novo por aqui?</span>
+          <button id="toggle-mode" class="text-purple underline cursor-pointer hover:text-yellow">
+            <span id="toggle-link">Criar conta</span>
+          </button>
+        </p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="pixel-card space-y-6">
+
+        <div>
+          <label class="body-text text-yellow block mb-2">USERNAME:</label>
+          <input
+            type="text"
+            id="login-username"
+            class="pixel-input"
+            placeholder="Digite seu username..."
+            required
+          >
+        </div>
+
+        <div>
+          <label class="body-text text-yellow block mb-2">PASSWORD:</label>
+          <input
+            type="password"
+            id="login-password"
+            class="pixel-input"
+            placeholder="Digite sua senha..."
+            required
+          >
+        </div>
+
+        <button type="submit" class="pixel-button-large bg-green w-full">
+          ▶ ENTER GAME
+        </button>
+
+      </form>
+
+      <!-- Register Form (Hidden by default) -->
+      <form id="register-form" class="pixel-card space-y-6 hidden">
+
+        <div>
+          <label class="body-text text-yellow block mb-2">USERNAME:</label>
+          <input
+            type="text"
+            id="register-username"
+            class="pixel-input"
+            placeholder="Escolha seu username..."
+            required
+          >
+        </div>
+
+        <div>
+          <label class="body-text text-yellow block mb-2">PASSWORD:</label>
+          <input
+            type="password"
+            id="register-password"
+            class="pixel-input"
+            placeholder="Escolha uma senha..."
+            required
+          >
+        </div>
+
+        <div>
+          <label class="body-text text-yellow block mb-4">GÊNEROS FAVORITOS (mínimo 3):</label>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="genre-selector">
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Ação" class="hidden genre-checkbox">
+              <span>[X] Ação</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Terror" class="hidden genre-checkbox">
+              <span>[T] Terror</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Comédia" class="hidden genre-checkbox">
+              <span>[L] Comédia</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Sci-Fi" class="hidden genre-checkbox">
+              <span>[S] Sci-Fi</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Animação" class="hidden genre-checkbox">
+              <span>[A] Animação</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Drama" class="hidden genre-checkbox">
+              <span>[D] Drama</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Romance" class="hidden genre-checkbox">
+              <span>[R] Romance</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Aventura" class="hidden genre-checkbox">
+              <span>[V] Aventura</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Fantasia" class="hidden genre-checkbox">
+              <span>[F] Fantasia</span>
+            </label>
+            <label class="genre-tag text-center cursor-pointer">
+              <input type="checkbox" name="genre" value="Crime" class="hidden genre-checkbox">
+              <span>[C] Crime</span>
+            </label>
+          </div>
+          <p id="genre-error" class="body-text text-red mt-2 hidden">[!] Selecione no mínimo 3 gêneros!</p>
+        </div>
+
+        <button type="submit" class="pixel-button-large bg-purple w-full">
+          ⭐ CREATE PLAYER
+        </button>
+
+      </form>
+
+      <!-- Message Box -->
+      <div id="message-box" class="pixel-box mt-6 hidden">
+        <p id="message-text" class="body-text text-center"></p>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    // Toggle between login and register
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const formTitle = document.getElementById('form-title');
+    const toggleText = document.getElementById('toggle-text');
+    const toggleLink = document.getElementById('toggle-link');
+    const toggleMode = document.getElementById('toggle-mode');
+    const messageBox = document.getElementById('message-box');
+    const messageText = document.getElementById('message-text');
+    const genreError = document.getElementById('genre-error');
+
+    let isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
+
+    function updateMode() {
+      if (isRegisterMode) {
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+        formTitle.textContent = '[ SIGN UP ]';
+        formTitle.classList.remove('text-green');
+        formTitle.classList.add('text-purple');
+        toggleText.textContent = 'Já tem conta?';
+        toggleLink.textContent = 'Fazer login';
+      } else {
+        registerForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        formTitle.textContent = '[ LOGIN ]';
+        formTitle.classList.remove('text-purple');
+        formTitle.classList.add('text-green');
+        toggleText.textContent = 'Novo por aqui?';
+        toggleLink.textContent = 'Criar conta';
+      }
+    }
+
+    toggleMode.addEventListener('click', () => {
+      isRegisterMode = !isRegisterMode;
+      updateMode();
+      messageBox.classList.add('hidden');
+    });
+
+    updateMode();
+
+    // Genre selection
+    const genreLabels = document.querySelectorAll('.genre-tag');
+    genreLabels.forEach(label => {
+      label.addEventListener('click', function() {
+        const checkbox = this.querySelector('input[type="checkbox"]');
+        checkbox.checked = !checkbox.checked; // Atualiza o estado do checkbox
+        this.classList.toggle('selected');
+        genreError.classList.add('hidden');
+      });
+    });
+
+    // Login handler
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('userId', data.userId);
+          localStorage.setItem('username', data.username);
+          localStorage.setItem('favoriteGenres', JSON.stringify(data.favoriteGenres));
+
+          messageBox.classList.remove('hidden');
+          messageText.textContent = '✅ ' + data.message;
+          messageText.className = 'body-text text-center text-green';
+
+          setTimeout(() => {
+            window.location.href = 'catalog.html';
+          }, 1500);
+        } else {
+          messageBox.classList.remove('hidden');
+          messageText.textContent = '❌ ' + data.error;
+          messageText.className = 'body-text text-center text-red';
+        }
+      } catch (error) {
+        messageBox.classList.remove('hidden');
+        messageText.textContent = '❌ Erro ao conectar com servidor!';
+        messageText.className = 'body-text text-center text-red';
+      }
+    });
+
+    // Register handler
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('register-username').value;
+      const password = document.getElementById('register-password').value;
+
+      const selectedGenres = Array.from(document.querySelectorAll('.genre-checkbox:checked'))
+        .map(checkbox => checkbox.value);
+
+      if (selectedGenres.length < 3) {
+        genreError.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username,
+            password,
+            favoriteGenres: selectedGenres
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          messageBox.classList.remove('hidden');
+          messageText.textContent = '✅ ' + data.message + ' Redirecionando...';
+          messageText.className = 'body-text text-center text-green';
+
+          localStorage.setItem('userId', data.userId);
+          localStorage.setItem('username', data.username);
+          localStorage.setItem('favoriteGenres', JSON.stringify(selectedGenres));
+
+          setTimeout(() => {
+            window.location.href = 'catalog.html';
+          }, 2000);
+        } else {
+          messageBox.classList.remove('hidden');
+          messageText.textContent = '❌ ' + data.error;
+          messageText.className = 'body-text text-center text-red';
+        }
+      } catch (error) {
+        messageBox.classList.remove('hidden');
+        messageText.textContent = '❌ Erro ao conectar com servidor!';
+        messageText.className = 'body-text text-center text-red';
+      }
+    });
+  </script>
+
+</body>
+</html>

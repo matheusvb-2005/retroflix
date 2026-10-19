@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>TESTE VISUAL - RETROFLIX</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #1A1625;
+      color: #68D391;
+      padding: 20px;
+    }
+    .test-section {
+      border: 3px solid #68D391;
+      padding: 20px;
+      margin: 20px 0;
+      background: #2D3748;
+    }
+    .card {
+      background: #2D3748;
+      border: 6px solid #63B3ED;
+      padding: 10px;
+      margin: 10px;
+      display: inline-block;
+      position: relative;
+      width: 300px;
+    }
+    .badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #F6E05E;
+      color: #000;
+      padding: 6px 12px;
+      border: 3px solid #000;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .fav-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #FC8181;
+      border: 3px solid #000;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    img {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      display: block;
+    }
+    .success { color: #68D391; }
+    .error { color: #FC8181; }
+    .info { color: #F6E05E; }
+  </style>
+</head>
+<body>
+  <h1>[TESTE VISUAL] RETROFLIX</h1>
+
+  <div class="test-section">
+    <h2>1. TESTE DE SVG DATA URI</h2>
+    <p class="info">Testando se SVG inline funciona:</p>
+
+    <div class="card">
+      <button class="fav-btn">[ ]</button>
+      <div class="badge">Filme</div>
+      <img id="svg-test" alt="Hereditário">
+      <p style="color: #B794F4; margin-top: 10px;">Hereditário</p>
+    </div>
+
+    <div class="card">
+      <button class="fav-btn">[ ]</button>
+      <div class="badge">Série</div>
+      <img id="svg-test2" alt="American Horror Story">
+      <p style="color: #B794F4; margin-top: 10px;">American Horror Story</p>
+    </div>
+
+    <p id="svg-result"></p>
+  </div>
+
+  <div class="test-section">
+    <h2>2. TESTE DE USUÁRIO LOGADO</h2>
+    <p id="user-status"></p>
+    <p id="user-data"></p>
+  </div>
+
+  <div class="test-section">
+    <h2>3. SIMULAÇÃO DE CARD COMPLETO</h2>
+    <p class="info">Como deve aparecer no catálogo:</p>
+    <div id="real-cards"></div>
+  </div>
+
+  <script>
+    // Test 1: SVG Data URI
+    const svgUrl1 = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="450"%3E%3Crect width="300" height="450" fill="%231A1625"/%3E%3Ctext x="50%25" y="50%25" font-family="monospace" font-size="24" fill="%23FC8181" text-anchor="middle" dominant-baseline="middle"%3EHEREDITARIO%3C/text%3E%3C/svg%3E';
+
+    const svgUrl2 = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="450"%3E%3Crect width="300" height="450" fill="%231A1625"/%3E%3Ctext x="50%25" y="45%25" font-family="monospace" font-size="20" fill="%23FC8181" text-anchor="middle" dominant-baseline="middle"%3EAMERICAN%3C/text%3E%3Ctext x="50%25" y="55%25" font-family="monospace" font-size="20" fill="%23FC8181" text-anchor="middle" dominant-baseline="middle"%3EHORROR STORY%3C/text%3E%3C/svg%3E';
+
+    const img1 = document.getElementById('svg-test');
+    const img2 = document.getElementById('svg-test2');
+    const result = document.getElementById('svg-result');
+
+    img1.src = svgUrl1;
+    img2.src = svgUrl2;
+
+    let loaded = 0;
+    img1.onload = () => {
+      loaded++;
+      result.innerHTML += '<p class="success">✓ Hereditário SVG carregou</p>';
+    };
+    img1.onerror = () => {
+      result.innerHTML += '<p class="error">✗ Hereditário SVG FALHOU</p>';
+    };
+
+    img2.onload = () => {
+      loaded++;
+      result.innerHTML += '<p class="success">✓ American Horror Story SVG carregou</p>';
+    };
+    img2.onerror = () => {
+      result.innerHTML += '<p class="error">✗ American Horror Story SVG FALHOU</p>';
+    };
+
+    // Test 2: User Login Status
+    const userStatus = document.getElementById('user-status');
+    const userData = document.getElementById('user-data');
+
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+
+    if (userId) {
+      userStatus.innerHTML = '<p class="success">✓ USUÁRIO LOGADO</p>';
+      userData.innerHTML = `<p class="info">UserId: ${userId}<br>Username: ${username}</p>`;
+    } else {
+      userStatus.innerHTML = '<p class="error">✗ USUÁRIO NÃO LOGADO</p>';
+      userData.innerHTML = '<p class="error">Botões de favoritar NÃO vão aparecer!</p>';
+    }
+
+    // Test 3: Real Cards Simulation
+    async function loadRealCards() {
+      try {
+        const res = await fetch('/api/titles');
+        const titles = await res.json();
+        const container = document.getElementById('real-cards');
+
+        const problematic = titles.filter(t =>
+          t.name === 'Hereditário' || t.name === 'American Horror Story'
+        );
+
+        problematic.forEach(title => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            ${userId ? '<button class="fav-btn">[ ]</button>' : '<p style="color: red;">SEM BOTÃO (não logado)</p>'}
+            <div class="badge">${title.type}</div>
+            <img src="${title.posterUrl}" alt="${title.name}">
+            <p style="color: #B794F4; margin-top: 10px;">${title.name}</p>
+            <p style="color: #F6E05E; font-size: 12px;">${title.genre} • ${title.year}</p>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        document.getElementById('real-cards').innerHTML = '<p class="error">Erro: ' + err.message + '</p>';
+      }
+    }
+
+    loadRealCards();
+  </script>
+</body>
+</html>

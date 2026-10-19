@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>TESTE - RETROFLIX</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #1A1625;
+      color: #68D391;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .success { color: #68D391; }
+    .error { color: #FC8181; }
+    .info { color: #F6E05E; }
+    pre {
+      background: #2D3748;
+      padding: 10px;
+      border: 2px solid #68D391;
+      overflow-x: auto;
+    }
+    img {
+      border: 3px solid #63B3ED;
+      margin: 10px;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <h1>[TEST] RETROFLIX VALIDATION</h1>
+  <div id="results"></div>
+
+  <script>
+    const output = document.getElementById('results');
+
+    function log(msg, type = 'info') {
+      const p = document.createElement('p');
+      p.className = type;
+      p.textContent = msg;
+      output.appendChild(p);
+    }
+
+    async function runTests() {
+      log('=== INICIANDO TESTES ===', 'success');
+
+      // Test 1: Fetch titles
+      try {
+        log('\n[1] Buscando títulos da API...');
+        const res = await fetch('/api/titles');
+        const titles = await res.json();
+        log(`✓ ${titles.length} títulos encontrados`, 'success');
+
+        // Check problematic titles
+        const problematic = titles.filter(t =>
+          t.name === 'Hereditário' || t.name === 'American Horror Story'
+        );
+
+        log('\n[2] Títulos problemáticos:', 'info');
+        problematic.forEach(t => {
+          log(`   - ${t.name}:`);
+          log(`     URL: ${t.posterUrl}`);
+
+          // Try to load image
+          const img = document.createElement('img');
+          img.src = t.posterUrl;
+          img.alt = t.name;
+          img.width = 150;
+          img.onerror = () => {
+            log(`     ✗ IMAGEM FALHOU AO CARREGAR!`, 'error');
+          };
+          img.onload = () => {
+            log(`     ✓ Imagem carregada com sucesso`, 'success');
+          };
+          output.appendChild(img);
+        });
+
+        // Test image loading for all
+        log('\n[3] Testando carregamento de todas as imagens...');
+        let loaded = 0;
+        let failed = 0;
+
+        for (const title of titles) {
+          const img = new Image();
+          img.src = title.posterUrl;
+          await new Promise(resolve => {
+            img.onload = () => { loaded++; resolve(); };
+            img.onerror = () => { failed++; resolve(); };
+            setTimeout(resolve, 2000); // timeout
+          });
+        }
+
+        log(`   Carregadas: ${loaded}/${titles.length}`, loaded === titles.length ? 'success' : 'error');
+        log(`   Falharam: ${failed}/${titles.length}`, failed === 0 ? 'success' : 'error');
+
+      } catch (err) {
+        log(`✗ ERRO: ${err.message}`, 'error');
+      }
+
+      log('\n=== TESTES CONCLUÍDOS ===', 'success');
+    }
+
+    runTests();
+  </script>
+</body>
+</html>

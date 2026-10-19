@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CATALOG - RETROFLIX</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark pixel-bg">
+
+  <!-- Header -->
+  <header class="pixel-border-bottom p-4">
+    <div class="container mx-auto flex flex-wrap justify-between items-center gap-4">
+      <a href="index.html" class="logo-text text-2xl text-purple glow">RETROFLIX</a>
+
+      <div class="flex items-center gap-4 flex-wrap">
+        <span id="user-greeting" class="body-text text-yellow hidden"></span>
+        <a href="recommendations.html" class="pixel-button bg-blue">[O] FOR YOU</a>
+        <a href="favorites.html" class="pixel-button bg-red">[H] FAVORITES</a>
+        <button id="logout-btn" class="pixel-button bg-gray">LOGOUT</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Catalog Section -->
+  <section class="p-8">
+    <div class="container mx-auto">
+
+      <div class="text-center mb-12">
+        <h2 class="section-title text-5xl mb-4 text-green glow">
+          &lt; ALL TITLES /&gt;
+        </h2>
+        <p class="body-text text-gray">
+          [M] Browse our complete collection [M]
+        </p>
+      </div>
+
+      <!-- Filter Options -->
+      <div class="pixel-box mb-8">
+        <div class="flex flex-wrap gap-4 items-center justify-center">
+          <label class="body-text text-yellow">FILTER BY:</label>
+          <button class="genre-tag selected" data-filter="all">[G] ALL</button>
+          <button class="genre-tag" data-filter="Filme">[M] FILMES</button>
+          <button class="genre-tag" data-filter="Série">📺 SÉRIES</button>
+          <button class="genre-tag" data-filter="Ação">[X] AÇÃO</button>
+          <button class="genre-tag" data-filter="Sci-Fi">[S] SCI-FI</button>
+          <button class="genre-tag" data-filter="Terror">[T] TERROR</button>
+          <button class="genre-tag" data-filter="Comédia">[L] COMÉDIA</button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading" class="loading">
+        <p class="loading-text">LOADING TITLES...</p>
+      </div>
+
+      <!-- Titles Grid -->
+      <div id="titles-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 hidden">
+        <!-- Movies will be dynamically inserted here -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="text-center py-16 hidden">
+        <p class="body-text text-2xl text-gray">[;(] Nenhum título encontrado</p>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    const userGreeting = document.getElementById('user-greeting');
+    const loading = document.getElementById('loading');
+    const titlesGrid = document.getElementById('titles-grid');
+    const emptyState = document.getElementById('empty-state');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    let allTitles = [];
+    let userFavorites = [];
+    let currentFilter = 'all';
+
+    // Show user greeting if logged in
+    if (username) {
+      userGreeting.textContent = `[P] Player: ${username}`;
+      userGreeting.classList.remove('hidden');
+    }
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    });
+
+    // Fetch all titles
+    async function fetchTitles() {
+      try {
+        const response = await fetch('/api/titles');
+        allTitles = await response.json();
+
+        // Fetch user favorites if logged in
+        if (userId) {
+          const favResponse = await fetch(`/api/titles/favorites/${userId}`);
+          userFavorites = await favResponse.json();
+        }
+
+        displayTitles(allTitles);
+      } catch (error) {
+        console.error('Error fetching titles:', error);
+        loading.innerHTML = '<p class="body-text text-red text-center">❌ Error loading titles!</p>';
+      }
+    }
+
+    // Escape HTML to prevent injection
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Display titles
+    function displayTitles(titles) {
+      loading.classList.add('hidden');
+
+      if (titles.length === 0) {
+        titlesGrid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      titlesGrid.classList.remove('hidden');
+      titlesGrid.innerHTML = '';
+
+      titles.forEach(title => {
+        const isFavorite = userFavorites.some(fav => fav._id === title._id);
+
+        const card = document.createElement('div');
+        card.className = 'movie-card animate-slide-up';
+
+        // Escape title name for safe use in HTML
+        const safeName = escapeHtml(title.name);
+
+        // Create SVG fallback with properly escaped XML entities
+        const svgSafeName = title.name
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&apos;');
+
+        const fallbackSVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450'%3E%3Crect width='300' height='450' fill='%232D3748'/%3E%3Ctext x='50%25' y='50%25' font-family='monospace' font-size='16' fill='%2368D391' text-anchor='middle' dominant-baseline='middle'%3E${encodeURIComponent(svgSafeName)}%3C/text%3E%3C/svg%3E`;
+
+        card.innerHTML = `
+          <button class="pixel-heart" data-id="${title._id}" data-favorited="${isFavorite}">
+            <div class="${isFavorite ? 'pixel-heart-filled' : 'pixel-heart-empty'}"></div>
+          </button>
+          <div class="movie-badge">${escapeHtml(title.type)}</div>
+          <img src="${escapeHtml(title.posterUrl)}" alt="${safeName}" onerror="this.onerror=null; this.src='${fallbackSVG}';">
+          <div class="p-4">
+            <h3 class="card-title mb-2 text-purple">${safeName}</h3>
+            <p class="body-text text-yellow" style="font-size: 1rem;">${escapeHtml(title.genre)} • ${title.year}</p>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="body-text text-green" style="font-size: 1rem;">[*] ${title.rating}/10</span>
+            </div>
+          </div>
+        `;
+
+        titlesGrid.appendChild(card);
+      });
+
+      // Add heart button listeners
+      document.querySelectorAll('.pixel-heart').forEach(btn => {
+        btn.addEventListener('click', handleFavoriteToggle);
+      });
+    }
+
+    // Handle favorite toggle
+    async function handleFavoriteToggle(e) {
+      e.stopPropagation();
+      const btn = e.currentTarget;
+
+      // Redirect to login if not authenticated
+      if (!userId) {
+        alert('[!] Você precisa estar logado para favoritar títulos!');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const titleId = btn.dataset.id;
+      const isFavorited = btn.dataset.favorited === 'true';
+      const heartDiv = btn.querySelector('div');
+
+      try {
+        const endpoint = isFavorited ? '/api/titles/unfavorite' : '/api/titles/favorite';
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, titleId })
+        });
+
+        if (response.ok) {
+          // Toggle visual state
+          const newState = !isFavorited;
+          btn.dataset.favorited = newState;
+          heartDiv.className = newState ? 'pixel-heart-filled' : 'pixel-heart-empty';
+
+          // Update local favorites array
+          if (newState) {
+            const title = allTitles.find(t => t._id === titleId);
+            if (title) userFavorites.push(title);
+          } else {
+            userFavorites = userFavorites.filter(fav => fav._id !== titleId);
+          }
+        }
+      } catch (error) {
+        console.error('Error toggling favorite:', error);
+        alert('[X] Erro ao favoritar. Tente novamente.');
+      }
+    }
+
+    // Filter functionality
+    const filterButtons = document.querySelectorAll('[data-filter]');
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Update selected state
+        filterButtons.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+
+        const filter = btn.dataset.filter;
+        currentFilter = filter;
+
+        if (filter === 'all') {
+          displayTitles(allTitles);
+        } else {
+          const filtered = allTitles.filter(title =>
+            title.type === filter || title.genre === filter
+          );
+          displayTitles(filtered);
+        }
+      });
+    });
+
+    // Initialize
+    fetchTitles();
+  </script>
+
+</body>
+</html>
